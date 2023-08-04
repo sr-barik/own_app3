@@ -56,7 +56,8 @@ class _ExpensesState extends State<Expenses> {
           ]),
       body: Column(children: [
         Expanded(
-          child: ExpensesList(_registeredExpense),
+          child: ExpensesList
+          (_registeredExpense),
         ),
       ]),
     );
