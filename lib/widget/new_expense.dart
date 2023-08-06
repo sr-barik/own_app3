@@ -5,7 +5,9 @@ import 'package:own_app3/models/expense.dart';
 final formatter = DateFormat.yMd();
 
 class NewExpanse extends StatefulWidget {
-  const NewExpanse({super.key});
+  const NewExpanse(this.onAddExpanse, {super.key});
+
+  final void Function(Expense expanse) onAddExpanse;
 
   @override
   State<NewExpanse> createState() => _NewExpanseState();
@@ -42,11 +44,46 @@ class _NewExpanseState extends State<NewExpanse> {
   // void _savedTitleInput(String inputValue) {
   //   _enteredTitle = inputValue;
   // }
+  void _submitExpenseData() {
+    final enteredAmount = double.parse(_amountController.text);
+    final invalidAmount = enteredAmount == (null) || enteredAmount <= 0;
+
+    if (_titleController.text.trim().isEmpty ||
+        invalidAmount ||
+        _selectedDate == null) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Something Went Wrong'),
+          content: const Text(
+              'Please Enter Valid Title or Amount or Date or Category'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+              },
+              child: const Text(
+                'Okay',
+                style: (TextStyle(color: Colors.red)),
+              ),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    widget.onAddExpanse(Expense(
+        amount: enteredAmount,
+        title: _titleController.text,
+        date: _selectedDate!,
+        category: _selectedCategory));
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
       child: Column(
         children: [
           TextField(
@@ -117,10 +154,7 @@ class _NewExpanseState extends State<NewExpanse> {
               ),
               ElevatedButton(
                   onPressed: () {
-                    print(
-                      _titleController.text,
-                    );
-                    print(_amountController.text);
+                    _submitExpenseData();
                   },
                   child: const Text('Save Expense'))
             ],

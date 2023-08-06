@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:own_app3/widget/chart/chart.dart';
 import 'package:own_app3/widget/expense_list/expenses_list.dart';
 import 'package:own_app3/models/expense.dart';
 import 'package:own_app3/widget/new_expense.dart';
@@ -22,25 +23,56 @@ class _ExpensesState extends State<Expenses> {
         title: 'Movie',
         date: DateTime.now(),
         category: Category.leisure),
-    Expense(
-        amount: 180,
-        title: 'Hangout',
-        date: DateTime.now(),
-        category: Category.travel),
-    Expense(
-        amount: 69,
-        title: 'Burger',
-        date: DateTime.now(),
-        category: Category.food),
   ];
 
   void _openAddExpenseOverLay() {
     showModalBottomSheet(
-        context: context, builder: (ctx) => const NewExpanse());
+        isScrollControlled: true,
+        context: context,
+        builder: (ctx) => NewExpanse(_addExpense));
+  }
+
+  void _addExpense(Expense expense) {
+    setState(() {
+      _registeredExpense.add(expense);
+    });
+  }
+
+  void removeExpense(Expense expense) {
+    final expenseIndex = _registeredExpense.indexOf(expense);
+    setState(() {
+      _registeredExpense.remove(expense);
+    });
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+          content: const Text('Expense Deleted'),
+          duration: const Duration(seconds: 3),
+          action: SnackBarAction(
+            label: 'Undo',
+            onPressed: () {
+              setState(
+                () {
+                  _registeredExpense.insert(expenseIndex, expense);
+                },
+              );
+            },
+          )),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    Widget emptyMsg = const Center(
+      child: Text('No Expense Found, Please Start Adding'),
+    );
+    if (_registeredExpense.isNotEmpty) {
+      emptyMsg = ExpensesList(
+        _registeredExpense,
+        onRemoveExpense: removeExpense,
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
           title: const Text(
@@ -55,10 +87,8 @@ class _ExpensesState extends State<Expenses> {
             ),
           ]),
       body: Column(children: [
-        Expanded(
-          child: ExpensesList
-          (_registeredExpense),
-        ),
+        Chart(expenses: _registeredExpense),
+        Expanded(child: emptyMsg),
       ]),
     );
   }
